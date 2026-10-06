@@ -1,0 +1,14 @@
+{
+  "name": "Cold Hard Data",
+  "tagline": "Money advice, tested.",
+  "youtube_url": "https://www.youtube.com/@ColdHardData",
+  "newsletter_signup_url": "",
+  "contact_email": "coldharddata@gmail.com",
+  "disclaimer": "This video is for educational purposes only and is not financial advice.",
+  "calculators": [
+    {
+      "id": "average-vs-real-return",
+      "title": "Average vs Real Return"
+    }
+  ]
+}

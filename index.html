@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="en" data-root=".">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Cold Hard Data: Money advice, tested</title>
+  <meta name="description" content="We put famous money advice on trial with decades of real data, give a fair verdict, and hand you the receipts: free calculators to rerun every test.">
+  <link rel="icon" href="assets/logo.png">
+  <link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+  <header class="site">
+    <div class="wrap">
+      <a class="brand" href="./"><img src="assets/logo.png" alt="">COLD HARD DATA</a>
+      <nav><a href="./" aria-current="page">Calculators</a><a href="about.html">About</a><a data-youtube href="#">YouTube</a></nav>
+    </div>
+  </header>
+
+  <main class="wrap">
+    <p class="kicker">Money advice, tested</p>
+    <h1>The receipts behind every verdict.</h1>
+    <p class="lead">Each video puts a famous money claim on trial with decades of real data. Here you can rerun the same test with your own numbers, using the exact data and math from the video.</p>
+
+    <h2>Calculators</h2>
+    <div class="grid">
+      <a class="card" href="calculators/average-vs-real-return/" style="text-decoration:none;color:inherit">
+        <p class="kicker" style="margin:0 0 6px">On Trial</p>
+        <h3 style="margin:0 0 6px">Average vs Real Return</h3>
+        <p class="note" style="margin:0">Does "the market averages 12%" hold up? Compare the simple average with what a monthly plan really became, after inflation, in every period since 1928.</p>
+      </a>
+    </div>
+
+    <h2>Get the next verdict</h2>
+    <form id="newsletter" class="newsletter" method="post" hidden>
+      <label style="flex:1 1 260px">Email<input type="email" name="email" required autocomplete="email" placeholder="you@example.com"></label>
+      <button type="submit">Subscribe</button>
+    </form>
+    <p class="note">New tests every week on <a data-youtube href="#">YouTube</a>.</p>
+  </main>
+
+  <footer class="site">
+    <div class="wrap">
+      <nav><a href="about.html">About</a><a href="privacy.html">Privacy</a><a data-youtube href="#">YouTube</a></nav>
+      <p>Education only, not financial advice. Past returns don't predict future returns.</p>
+      <p>This product uses the FRED&reg; API but is not endorsed or certified by the Federal Reserve Bank of St. Louis. FRED data is subject to the <a href="https://fred.stlouisfed.org/docs/api/terms_of_use.html">FRED API Terms of Use</a>.</p>
+      <p>&copy; <span data-year></span> Cold Hard Data</p>
+    </div>
+  </footer>
+  <script src="assets/site.js" type="module"></script>
+</body>
+</html>

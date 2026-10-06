@@ -1,0 +1,176 @@
+<!doctype html>
+<html lang="en" data-root="../..">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Average vs Real Return Calculator | Cold Hard Data</title>
+  <meta name="description" content="Is the stock market's 12% average a number you can plan with? Test a monthly plan against every period since 1928, after inflation.">
+  <link rel="icon" href="../../assets/logo.png">
+  <link rel="stylesheet" href="../../assets/style.css">
+</head>
+<body>
+  <header class="site">
+    <div class="wrap">
+      <a class="brand" href="../../"><img src="../../assets/logo.png" alt="">COLD HARD DATA</a>
+      <nav><a href="../../">Calculators</a><a href="../../about.html">About</a><a data-youtube href="#">YouTube</a></nav>
+    </div>
+  </header>
+
+  <main class="wrap">
+    <p class="kicker">Receipts · On Trial</p>
+    <h1>Average vs Real Return</h1>
+    <p class="lead">"The stock market averages 12%." The average is real. But can you plan with it? Run a monthly plan through every period of history, with dividends reinvested and after inflation.</p>
+
+    <form class="calc card" id="form" novalidate>
+      <label>Monthly contribution ($)<input id="monthly" type="number" min="1" step="1" inputmode="numeric"></label>
+      <label>Years invested<input id="years" type="number" min="1" max="60" step="1" inputmode="numeric"></label>
+      <label>Claimed return (% a year)<input id="claimed" type="number" min="0" max="50" step="0.1" inputmode="decimal"></label>
+      <label>How the claim compounds
+        <select id="compounding">
+          <option value="annual">Exactly that rate a year</option>
+          <option value="monthly">1/12 of it each month (many calculators)</option>
+        </select>
+      </label>
+      <label>Fund fees (% a year)<input id="fee" type="number" min="0" max="5" step="0.05" inputmode="decimal"></label>
+    </form>
+    <p id="error" class="error" role="alert"></p>
+
+    <section id="results" aria-live="polite">
+      <h2>The average vs how money actually grew</h2>
+      <p class="note" id="period"></p>
+      <div class="grid">
+        <div class="stat claim"><div class="value" id="avgNominal"></div><div class="label">Simple average a year, before inflation</div></div>
+        <div class="stat"><div class="value" id="cagrNominal"></div><div class="label">Compound growth a year, before inflation</div></div>
+        <div class="stat real"><div class="value" id="cagrReal"></div><div class="label">Compound growth a year, after inflation</div></div>
+        <div class="stat"><div class="value" id="inflation"></div><div class="label">Inflation a year, compounded</div></div>
+      </div>
+
+      <h2>Your plan vs every period of history</h2>
+      <p id="planText"></p>
+      <div class="grid">
+        <div class="stat claim"><div class="value" id="projection"></div><div class="label" id="projectionLabel"></div></div>
+        <div class="stat worst"><div class="value" id="worst"></div><div class="label" id="worstLabel"></div></div>
+        <div class="stat"><div class="value" id="median"></div><div class="label" id="medianLabel"></div></div>
+        <div class="stat real"><div class="value" id="best"></div><div class="label" id="bestLabel"></div></div>
+      </div>
+      <p id="reached"></p>
+
+      <div class="card" style="margin-top:16px">
+        <div class="legend">
+          <span style="--c: var(--gold)">The claim's projection</span>
+          <span style="--c: var(--muted)">Ending balance, before inflation</span>
+          <span style="--c: var(--ice)">Ending balance, today's dollars</span>
+        </div>
+        <svg id="chart" class="chart" viewBox="0 0 900 360" role="img" aria-label="Ending balance for every start year compared with the projection"></svg>
+        <p class="note" style="margin:6px 0 0">Each point is one start year: what the plan ended with after the chosen number of years.</p>
+      </div>
+    </section>
+
+    <h2>How this works</h2>
+    <ul class="clean note">
+      <li>Yearly S&amp;P 500 total returns (dividends reinvested) from Aswath Damodaran's NYU Stern dataset; inflation from the U.S. CPI-U, December to December. Real return = (1 + return) / (1 + inflation) - 1.</li>
+      <li>Simple average = the arithmetic mean of the yearly returns. Compound growth (CAGR) = the constant yearly return that ends at the same place.</li>
+      <li>Your contribution goes in at the end of every month. Each year's return is spread evenly over its 12 months; the claim's projection uses the same rule.</li>
+      <li>"Today's dollars": contributions keep the same purchasing power every year and returns are after inflation, so results are in the same dollars you contribute.</li>
+      <li>Every period of your length is tested, one per start year. Worst, median and best are ranked in today's dollars; the yearly return shown is the constant return that would turn the same contributions into the same ending balance.</li>
+      <li>Fees are subtracted from each year's return. Taxes aren't modeled. This is the same math as the video, checked by an automated test against our Python analysis.</li>
+    </ul>
+    <h3>What it doesn't account for</h3>
+    <ul class="clean note" id="caveats"></ul>
+    <h3>Sources</h3>
+    <ul class="clean note" id="sources"></ul>
+    <div class="callout"><p style="margin:0">Education only, not financial advice. This is history, not a forecast: past returns don't predict future returns.</p></div>
+  </main>
+
+  <footer class="site">
+    <div class="wrap">
+      <nav><a href="../../about.html">About</a><a href="../../privacy.html">Privacy</a><a data-youtube href="#">YouTube</a></nav>
+      <p>This product uses the FRED&reg; API but is not endorsed or certified by the Federal Reserve Bank of St. Louis. FRED data is subject to the <a href="https://fred.stlouisfed.org/docs/api/terms_of_use.html">FRED API Terms of Use</a>.</p>
+      <p>&copy; <span data-year></span> Cold Hard Data</p>
+    </div>
+  </footer>
+
+  <script src="../../assets/site.js" type="module"></script>
+  <script type="module">
+    import { compute, pct, usd } from "../../assets/average-vs-real.js";
+
+    const $ = (id) => document.getElementById(id);
+    const data = await (await fetch("data.json")).json();
+    const fields = { monthly: "monthly", years: "years", claimed: "claimedPct", compounding: "compounding", fee: "feePct" };
+    for (const [id, key] of Object.entries(fields)) $(id).value = data.defaults[key];
+
+    const list = (el, items) => {
+      el.replaceChildren(...items.map((t) => Object.assign(document.createElement("li"), { textContent: t })));
+    };
+    list($("caveats"), data.caveats);
+    $("sources").replaceChildren(...data.sources.map((s) => {
+      const li = document.createElement("li");
+      const a = Object.assign(document.createElement("a"), { href: s.url, textContent: s.name });
+      li.append(a, ` (accessed ${s.accessed})`);
+      return li;
+    }));
+
+    const read = () => ({
+      monthly: Number($("monthly").value), years: Math.round(Number($("years").value)),
+      claimedPct: Number($("claimed").value), compounding: $("compounding").value, feePct: Number($("fee").value),
+    });
+
+    const chart = (r, p) => {
+      const W = 900, H = 360, L = 70, B = 30, T = 12;
+      const xs = r.windows.map((w) => w.startYear);
+      const ys = [...r.windows.flatMap((w) => [w.fvNominal, w.fvReal]), r.projection];
+      const x = (v) => L + ((v - xs[0]) / Math.max(1, xs.at(-1) - xs[0])) * (W - L - 10);
+      const top = Math.max(...ys) * 1.05;
+      const y = (v) => T + (1 - v / top) * (H - T - B);
+      const path = (key) => r.windows.map((w, i) => `${i ? "L" : "M"}${x(w.startYear).toFixed(1)} ${y(w[key]).toFixed(1)}`).join(" ");
+      const ticks = [0, top / 4, top / 2, (3 * top) / 4];
+      const svgNS = "http://www.w3.org/2000/svg";
+      const el = (tag, attrs, text) => {
+        const n = document.createElementNS(svgNS, tag);
+        for (const [k, v] of Object.entries(attrs)) n.setAttribute(k, v);
+        if (text !== undefined) n.textContent = text;
+        return n;
+      };
+      $("chart").replaceChildren(
+        ...ticks.flatMap((t) => [
+          el("line", { x1: L, x2: W - 10, y1: y(t), y2: y(t), stroke: "#8a93a6", "stroke-opacity": 0.2 }),
+          el("text", { x: L - 8, y: y(t) + 4, "text-anchor": "end" }, usd(t)),
+        ]),
+        el("line", { x1: L, x2: W - 10, y1: y(r.projection), y2: y(r.projection), stroke: "#ffd166", "stroke-width": 3, "stroke-dasharray": "8 6" }),
+        el("path", { d: path("fvNominal"), fill: "none", stroke: "#8a93a6", "stroke-width": 2.5 }),
+        el("path", { d: path("fvReal"), fill: "none", stroke: "#8fd3ff", "stroke-width": 3.5 }),
+        el("text", { x: L, y: H - 8 }, String(xs[0])),
+        el("text", { x: W - 10, y: H - 8, "text-anchor": "end" }, String(xs.at(-1))),
+      );
+    };
+
+    const update = () => {
+      const p = read();
+      const ok = p.monthly > 0 && p.years >= 1 && p.years <= data.years.length && p.claimedPct >= 0 && p.claimedPct <= 50 && p.feePct >= 0 && p.feePct <= 5;
+      $("error").textContent = ok ? "" : `Use a monthly amount above $0, 1 to ${data.years.length} years, a return of 0-50% and fees of 0-5%.`;
+      if (!ok) return;
+      const r = compute(data, p);
+      const span = (w) => `${w.startYear}-${w.endYear}`;
+      $("period").textContent = `S&P 500 with dividends reinvested, ${r.period[0]}-${r.period[1]}${p.feePct ? `, minus ${p.feePct}% a year in fees` : ""}.`;
+      $("avgNominal").textContent = pct(r.avgNominal);
+      $("cagrNominal").textContent = pct(r.cagrNominal);
+      $("cagrReal").textContent = pct(r.cagrReal);
+      $("inflation").textContent = pct(r.inflation);
+      $("planText").textContent = `${usd(p.monthly)} a month for ${p.years} years (${usd(r.contributed)} in total), tested in all ${r.windows.length} periods of ${p.years} years.`;
+      $("projection").textContent = usd(r.projection);
+      $("projectionLabel").textContent = `At a constant ${p.claimedPct}% a year, before inflation`;
+      $("worst").textContent = usd(r.worst.fvReal);
+      $("worstLabel").textContent = `Worst period (${span(r.worst)}), today's dollars: ${pct(r.worst.irrReal)} a year after inflation`;
+      $("median").textContent = usd(r.median.fvReal);
+      $("medianLabel").textContent = `Median period (${span(r.median)}), today's dollars: ${pct(r.median.irrReal)} a year after inflation`;
+      $("best").textContent = usd(r.best.fvReal);
+      $("bestLabel").textContent = `Best period (${span(r.best)}), today's dollars: ${pct(r.best.irrReal)} a year after inflation`;
+      $("reached").textContent = `Periods that reached the projection: ${r.reachedNominal} of ${r.windows.length} before inflation, ${r.reachedReal} of ${r.windows.length} in today's dollars.`;
+      chart(r, p);
+    };
+
+    $("form").addEventListener("input", update);
+    update();
+  </script>
+</body>
+</html>

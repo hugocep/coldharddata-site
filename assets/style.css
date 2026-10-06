@@ -1,0 +1,99 @@
+/* Cold Hard Data: brand colors from channels/finance/channel.yaml. No external fonts or trackers. */
+:root {
+  --bg: #0b0f14;
+  --surface: #141a22;
+  --surface-2: #1b2330;
+  --text: #f2f4f8;
+  --muted: #8a93a6;
+  --ice: #8fd3ff;
+  --gold: #ffd166;
+  --green: #06d6a0;
+  --red: #ff5d73;
+  --radius: 16px;
+  --font: Inter, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+}
+
+* { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font: 17px/1.6 var(--font);
+}
+a { color: var(--ice); }
+a:hover { text-decoration-thickness: 2px; }
+img { max-width: 100%; }
+
+.wrap { max-width: 1040px; margin: 0 auto; padding: 0 20px; }
+
+header.site {
+  border-bottom: 1px solid var(--surface-2);
+}
+header.site .wrap { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding-top: 14px; padding-bottom: 14px; flex-wrap: wrap; }
+.brand { display: flex; align-items: center; gap: 12px; color: var(--text); text-decoration: none; font-weight: 800; letter-spacing: 0.12em; }
+.brand img { width: 40px; height: 40px; border-radius: 50%; }
+nav a { color: var(--muted); text-decoration: none; margin-left: 18px; font-weight: 600; }
+nav a:hover, nav a[aria-current="page"] { color: var(--text); }
+
+main { padding: 40px 0 60px; }
+h1 { font-size: clamp(32px, 5vw, 52px); line-height: 1.1; letter-spacing: -0.02em; margin: 0 0 12px; }
+h2 { font-size: 26px; margin: 40px 0 12px; }
+h3 { font-size: 19px; margin: 24px 0 8px; }
+.lead { font-size: 20px; color: var(--muted); max-width: 720px; }
+.kicker { color: var(--ice); font-weight: 800; letter-spacing: 0.14em; text-transform: uppercase; font-size: 14px; }
+
+.card {
+  background: var(--surface);
+  border-radius: var(--radius);
+  padding: 22px 24px;
+}
+.grid { display: grid; gap: 16px; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); }
+.stat { background: var(--surface); border-radius: var(--radius); padding: 18px 20px; border-top: 6px solid var(--ice); }
+.stat .value { font-size: 34px; font-weight: 900; letter-spacing: -0.02em; font-variant-numeric: tabular-nums; }
+.stat .label { color: var(--muted); font-size: 15px; }
+.stat.claim { border-top-color: var(--gold); }
+.stat.claim .value { color: var(--gold); }
+.stat.real { border-top-color: var(--green); }
+.stat.worst { border-top-color: var(--red); }
+
+form.calc { display: grid; gap: 16px; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); align-items: end; }
+label { display: flex; flex-direction: column; gap: 6px; font-weight: 600; font-size: 15px; color: var(--muted); }
+input, select {
+  font: inherit;
+  color: var(--text);
+  background: var(--surface-2);
+  border: 1px solid #2a3443;
+  border-radius: 10px;
+  padding: 10px 12px;
+}
+input:focus, select:focus { outline: 2px solid var(--ice); outline-offset: 1px; }
+button, .button {
+  font: inherit; font-weight: 800; cursor: pointer;
+  color: var(--bg); background: var(--ice);
+  border: 0; border-radius: 10px; padding: 11px 18px; text-decoration: none; display: inline-block;
+}
+
+.chart { width: 100%; height: auto; display: block; }
+.chart text { fill: var(--muted); font: 13px var(--font); }
+.legend { display: flex; gap: 18px; flex-wrap: wrap; color: var(--muted); font-size: 14px; }
+.legend span::before { content: ""; display: inline-block; width: 22px; height: 5px; border-radius: 3px; margin-right: 8px; vertical-align: middle; background: var(--c); }
+
+.note { color: var(--muted); font-size: 15px; }
+.callout { border-left: 6px solid var(--gold); padding: 14px 18px; background: var(--surface); border-radius: 0 var(--radius) var(--radius) 0; }
+ul.clean { padding-left: 20px; }
+.error { color: var(--red); font-weight: 600; }
+
+#newsletter[hidden] { display: none; }
+.newsletter { display: flex; gap: 10px; flex-wrap: wrap; }
+.newsletter input { flex: 1 1 240px; }
+
+footer.site { border-top: 1px solid var(--surface-2); color: var(--muted); font-size: 14px; padding: 28px 0 40px; }
+footer.site p { margin: 6px 0; }
+footer.site nav a { margin: 0 16px 0 0; }
+
+@media (max-width: 560px) {
+  body { font-size: 16px; }
+  nav a { margin-left: 12px; }
+  .stat .value { font-size: 28px; }
+}
