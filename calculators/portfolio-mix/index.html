@@ -1,0 +1,188 @@
+<!doctype html>
+<html lang="en" data-root="../..">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Portfolio Mix Backtest | Cold Hard Data</title>
+  <meta name="description" content="Test Warren Buffett's 90/10 or any mix of stocks, T-bills and Treasury bonds against every period since 1928, after inflation and fees.">
+  <link rel="icon" href="../../assets/logo.png">
+  <link rel="stylesheet" href="../../assets/style.css">
+</head>
+<body>
+  <header class="site">
+    <div class="wrap">
+      <a class="brand" href="../../"><img src="../../assets/logo.png" alt="">COLD HARD DATA</a>
+      <nav><a href="../../">Calculators</a><a href="../../about.html">About</a><a data-youtube href="#">YouTube</a></nav>
+    </div>
+  </header>
+
+  <main class="wrap">
+    <p class="kicker">Receipts · On Trial</p>
+    <h1>Portfolio Mix Backtest</h1>
+    <p class="lead">Warren Buffett's instructions for his wife's trust: 90% in a low-cost S&amp;P 500 index fund, 10% in short-term government bonds. Try that mix, or your own, against every period since 1928, after inflation and fees.</p>
+
+    <form class="calc card" id="form" novalidate>
+      <label>Stocks: S&amp;P 500 index (%)<input id="stocks" type="number" min="0" max="100" step="5" inputmode="numeric"></label>
+      <label>Short-term government bonds: T-bills (%)<input id="bills" type="number" min="0" max="100" step="5" inputmode="numeric"></label>
+      <label>10-year Treasury bonds (%)<input id="bonds" type="number" min="0" max="100" step="5" inputmode="numeric"></label>
+      <label>Index fund fee (% a year)<input id="indexFee" type="number" min="0" max="5" step="0.01" inputmode="decimal"></label>
+      <label>High-fee manager (% a year)<input id="managerFee" type="number" min="0" max="5" step="0.05" inputmode="decimal"></label>
+      <label>Starting amount ($)<input id="lump" type="number" min="1" step="1000" inputmode="numeric"></label>
+      <label>Years per period<input id="years" type="number" min="1" max="60" step="1" inputmode="numeric"></label>
+      <label>Yearly withdrawal (% of the start, raised with inflation)<input id="withdrawal" type="number" min="0" max="20" step="0.5" inputmode="decimal"></label>
+    </form>
+    <p id="error" class="error" role="alert"></p>
+
+    <section id="results" aria-live="polite">
+      <p class="note" id="period"></p>
+      <h2>Growth, falls and recoveries</h2>
+      <div class="grid" id="mixGrid"></div>
+
+      <div class="card" style="margin-top:16px">
+        <div class="legend">
+          <span style="--c: var(--gold)">Your mix</span>
+          <span style="--c: var(--green)">100% stocks</span>
+          <span style="--c: var(--muted)">60/40 stocks and 10-year bonds</span>
+        </div>
+        <svg id="chart" class="chart" viewBox="0 0 900 360" role="img" aria-label="What one dollar grew to, after inflation, for each mix"></svg>
+        <p class="note" style="margin:6px 0 0">One dollar invested at the start, in today's dollars (log scale).</p>
+      </div>
+
+      <h2>A lump sum in every period</h2>
+      <p id="lumpText"></p>
+      <div class="grid" id="lumpGrid"></div>
+
+      <h2>Paying an income</h2>
+      <p id="incomeText"></p>
+      <div class="grid" id="incomeGrid"></div>
+
+      <h2>Low cost vs a high-fee manager</h2>
+      <div class="grid">
+        <div class="stat claim"><div class="value" id="yoursCagr"></div><div class="label">Your mix at index cost, a year after inflation</div></div>
+        <div class="stat worst"><div class="value" id="managerCagr"></div><div class="label" id="managerLabel"></div></div>
+        <div class="stat real"><div class="value" id="beat"></div><div class="label" id="beatLabel"></div></div>
+        <div class="stat"><div class="value" id="feeLost"></div><div class="label" id="feeLostLabel"></div></div>
+      </div>
+    </section>
+
+    <h2>How this works</h2>
+    <ul class="clean note" id="method"></ul>
+    <h3>What it doesn't account for</h3>
+    <ul class="clean note" id="caveats"></ul>
+    <h3>Sources</h3>
+    <ul class="clean note" id="sources"></ul>
+    <div class="callout"><p style="margin:0">Education only, not financial advice. This is history, not a forecast: past returns don't predict future returns. Same math as the video, checked by an automated test against our Python analysis.</p></div>
+  </main>
+
+  <footer class="site">
+    <div class="wrap">
+      <nav><a href="../../about.html">About</a><a href="../../privacy.html">Privacy</a><a data-youtube href="#">YouTube</a></nav>
+      <p>This product uses the FRED&reg; API but is not endorsed or certified by the Federal Reserve Bank of St. Louis. FRED data is subject to the <a href="https://fred.stlouisfed.org/docs/api/terms_of_use.html">FRED API Terms of Use</a>.</p>
+      <p>&copy; <span data-year></span> Cold Hard Data</p>
+    </div>
+  </footer>
+
+  <script src="../../assets/site.js" type="module"></script>
+  <script type="module">
+    import { compute, pct, usd } from "../../assets/portfolio-mix.js";
+
+    const $ = (id) => document.getElementById(id);
+    const data = await (await fetch("data.json")).json();
+    const fields = { stocks: "stocksPct", bills: "billsPct", bonds: "bondsPct", indexFee: "indexFeePct",
+                     managerFee: "managerFeePct", lump: "lump", years: "years", withdrawal: "withdrawalPct" };
+    for (const [id, key] of Object.entries(fields)) $(id).value = data.defaults[key];
+
+    const list = (el, items) => el.replaceChildren(...items.map((t) => Object.assign(document.createElement("li"), { textContent: t })));
+    list($("method"), data.method);
+    list($("caveats"), data.caveats);
+    $("sources").replaceChildren(...data.sources.map((s) => {
+      const li = document.createElement("li");
+      li.append(Object.assign(document.createElement("a"), { href: s.url, textContent: s.name }), ` (accessed ${s.accessed})`);
+      return li;
+    }));
+
+    const NAMES = { yours: "Your mix", allStocks: "100% stocks", sixtyForty: "60/40 stocks and bonds" };
+    const CLASS = { yours: "claim", allStocks: "real", sixtyForty: "muted" };
+    const stat = (cls, value, label) => {
+      const d = document.createElement("div");
+      d.className = `stat ${cls}`;
+      d.append(Object.assign(document.createElement("div"), { className: "value", textContent: value }),
+               Object.assign(document.createElement("div"), { className: "label", textContent: label }));
+      return d;
+    };
+
+    const chart = (r) => {
+      const W = 900, H = 360, L = 70, B = 30, T = 12;
+      const years = [r.period[0] - 1, ...data.years];
+      const paths = Object.fromEntries(Object.entries(r.mixes).map(([k, m]) => {
+        const v = [1];
+        for (const x of m.real) v.push(v.at(-1) * (1 + x));
+        return [k, v];
+      }));
+      const all = Object.values(paths).flat();
+      const lo = Math.floor(Math.log10(Math.min(...all))), hi = Math.ceil(Math.log10(Math.max(...all)));
+      const x = (i) => L + (i / (years.length - 1)) * (W - L - 10);
+      const y = (v) => T + (1 - (Math.log10(v) - lo) / (hi - lo || 1)) * (H - T - B);
+      const svgNS = "http://www.w3.org/2000/svg";
+      const el = (tag, attrs, text) => {
+        const n = document.createElementNS(svgNS, tag);
+        for (const [k, v] of Object.entries(attrs)) n.setAttribute(k, v);
+        if (text !== undefined) n.textContent = text;
+        return n;
+      };
+      const colors = { yours: "#ffd166", allStocks: "#06d6a0", sixtyForty: "#8a93a6" };
+      $("chart").replaceChildren(
+        ...Array.from({ length: hi - lo + 1 }, (_, i) => 10 ** (lo + i)).flatMap((t) => [
+          el("line", { x1: L, x2: W - 10, y1: y(t), y2: y(t), stroke: "#8a93a6", "stroke-opacity": 0.2 }),
+          el("text", { x: L - 8, y: y(t) + 4, "text-anchor": "end" }, t < 1 ? `$${t.toFixed(2)}` : usd(t)),
+        ]),
+        ...["sixtyForty", "allStocks", "yours"].map((k) => el("path", {
+          d: paths[k].map((v, i) => `${i ? "L" : "M"}${x(i).toFixed(1)} ${y(v).toFixed(1)}`).join(" "),
+          fill: "none", stroke: colors[k], "stroke-width": k === "yours" ? 3.5 : 2.5,
+        })),
+        el("text", { x: L, y: H - 8 }, String(years[0])),
+        el("text", { x: W - 10, y: H - 8, "text-anchor": "end" }, String(years.at(-1))),
+      );
+    };
+
+    const read = () => ({
+      stocksPct: Number($("stocks").value), billsPct: Number($("bills").value), bondsPct: Number($("bonds").value),
+      indexFeePct: Number($("indexFee").value), managerFeePct: Number($("managerFee").value), lump: Number($("lump").value),
+      years: Math.round(Number($("years").value)), withdrawalPct: Number($("withdrawal").value),
+    });
+
+    const update = () => {
+      const p = read();
+      const sum = p.stocksPct + p.billsPct + p.bondsPct;
+      const ok = Math.abs(sum - 100) < 1e-9 && [p.stocksPct, p.billsPct, p.bondsPct].every((v) => v >= 0)
+        && p.indexFeePct >= 0 && p.indexFeePct <= 5 && p.managerFeePct >= 0 && p.managerFeePct <= 5
+        && p.lump > 0 && p.years >= 1 && p.years <= data.years.length && p.withdrawalPct >= 0 && p.withdrawalPct <= 20;
+      $("error").textContent = ok ? "" : `The three parts must add up to 100% (now ${sum}%). Use 1 to ${data.years.length} years, fees of 0-5% and a withdrawal of 0-20%.`;
+      if (!ok) return;
+      const r = compute(data, p);
+      const span = (w) => `${w.startYear}-${w.endYear}`;
+      $("period").textContent = `Calendar years ${r.period[0]}-${r.period[1]}, rebalanced every year, ${p.indexFeePct}% index fee, after inflation (prices rose ${pct(r.inflation)} a year).`;
+      $("mixGrid").replaceChildren(...Object.entries(r.mixes).map(([k, m]) => stat(CLASS[k], pct(m.realCagr),
+        `${NAMES[k]}: a year after inflation. Worst year ${m.worstYear.year} (${pct(m.worstYear.r)}); deepest fall ${pct(m.drawdown.deepest)}, `
+        + (m.drawdown.recoveryYears === null ? "not yet recovered." : `${m.drawdown.recoveryYears} years to get back.`))));
+      $("lumpText").textContent = `${usd(p.lump)} invested once, held ${p.years} years: worst, median and best of the ${r.windows} periods, in today's dollars.`;
+      $("lumpGrid").replaceChildren(...Object.entries(r.mixes).map(([k, m]) => stat(CLASS[k], usd(m.median.value),
+        `${NAMES[k]}, median (${span(m.median)}). Worst ${usd(m.worst.value)} (${span(m.worst)}), best ${usd(m.best.value)} (${span(m.best)}).`)));
+      $("incomeText").textContent = `Taking ${p.withdrawalPct}% of ${usd(p.lump)} (${usd(p.lump * p.withdrawalPct / 100)}) at the start of every year, raised with inflation: in how many of the ${r.windows} periods did the money last all ${p.years} years?`;
+      $("incomeGrid").replaceChildren(...Object.entries(r.mixes).map(([k, m]) => stat(CLASS[k], `${m.survived} of ${r.windows}`,
+        `${NAMES[k]}` + (m.fastestRunOut ? `. Fastest to run out: year ${m.fastestRunOut.ranOut}, starting ${m.fastestRunOut.start}.` : ": it never ran out."))));
+      $("yoursCagr").textContent = pct(r.mixes.yours.realCagr);
+      $("managerCagr").textContent = pct(r.managerRealCagr);
+      $("managerLabel").textContent = `100% stocks through a manager charging ${p.managerFeePct}% (matching the index before fees), a year after inflation`;
+      $("beat").textContent = `${r.yoursBeatManager} of ${r.windows}`;
+      $("beatLabel").textContent = `Periods where your mix at index cost ended ahead of that manager`;
+      $("feeLost").textContent = pct(r.feeShareLost, 0);
+      $("feeLostLabel").textContent = `Share of the ending balance a ${p.managerFeePct}% fee takes over ${p.years} years, instead of ${p.indexFeePct}%`;
+      chart(r);
+    };
+
+    $("form").addEventListener("input", update);
+    update();
+  </script>
+</body>
+</html>

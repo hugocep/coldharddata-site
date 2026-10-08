@@ -9,6 +9,10 @@
     {
       "id": "average-vs-real-return",
       "title": "Average vs Real Return"
+    },
+    {
+      "id": "portfolio-mix",
+      "title": "Portfolio Mix Backtest"
     }
   ]
 }

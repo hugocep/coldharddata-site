@@ -56,6 +56,7 @@ h3 { font-size: 19px; margin: 24px 0 8px; }
 .stat.claim .value { color: var(--gold); }
 .stat.real { border-top-color: var(--green); }
 .stat.worst { border-top-color: var(--red); }
+.stat.muted { border-top-color: var(--muted); }
 
 form.calc { display: grid; gap: 16px; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); align-items: end; }
 label { display: flex; flex-direction: column; gap: 6px; font-weight: 600; font-size: 15px; color: var(--muted); }
